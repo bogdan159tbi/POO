@@ -1,9 +1,10 @@
 import java.util.*;
-import java.io.File;
+import java.io.*;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class Harta {
+    private static BufferedWriter writer ;
     private int[] distances;
     private Set<Integer> visited;
     private PriorityQueue<Node> qDistances;
@@ -14,6 +15,18 @@ public class Harta {
     public Harta(){
         nodes = 0;
         edges = 0;
+    }
+    public void out(String name){
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(name, true));
+            Harta.writer = writer;
+            //myWriter.write
+            //map.showGraph();
+            //writer.close();
+        }catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
     }
     public Harta(int nodes, int edges){
         this.nodes = nodes;
@@ -100,7 +113,7 @@ public class Harta {
             if (!visited.contains(v.end) &&  gabAuto <= v.gabarit) {
                 edgeDistance = v.getCost() * costAuto + v.getCostRestrictions() ;
                 newDistance = distances[u] + edgeDistance;
-                System.out.println("nodul" +" " +u + "catre" +" "+ v.end+ " "+ edgeDistance);
+                //System.out.println("nodul" +" " +u + "catre" +" "+ v.end+ " "+ edgeDistance);
                 parents[v.end] = u;
                 // If new distance is cheaper in cost
                 if (newDistance < distances[v.end])
@@ -138,7 +151,7 @@ public class Harta {
 
     }
 
-    public void getPath(int end){
+    public void getPath(int end, BufferedWriter myWriter ){
         /*
         cazul cand distanta e null si tre afisat doar start si end
          */
@@ -148,30 +161,62 @@ public class Harta {
                 if(parents[i] == -1)
                     src = i;
             }
-            if(src > -1)
-                System.out.print("P"+src + " ");
-            System.out.print("P"+end +" ");
+            if(src > -1) {
+                try {
+                    myWriter.write("P" + src + " ");
+                    return;
+                }catch (IOException e) {
+                    System.out.println("An error occurred.");
+                    e.printStackTrace();
+                }
+                System.out.print("P" + src + " ");
+            }
             return;
         }
         if(parents[end] == -1){
-            System.out.print("P"+end +" ");
-            return;
+            try {
+                myWriter.write("P" + end + " ");
+                return;
+            }catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+
         }
-        getPath(parents[end]);
+        getPath(parents[end], myWriter);
         /*
         for(int i = 0 ; i < this.nodes; i++)
             System.out.print(i  + "=" +" " +parents[i]+" ");
         System.out.println();
 
          */
-        System.out.print("P"+end +" " );
+        try {
+            myWriter.write("P"+end +" " );
+        }catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        //System.out.print("P"+end +" " );
     }
-    public void getLength(int end){
-        if(this.distances[end] == Integer.MAX_VALUE)
-            System.out.println("null");
-        else
-            System.out.println(this.distances[end]);
+    public void getLength(int end, BufferedWriter myWriter ){
+        if(this.distances[end] == Integer.MAX_VALUE){
+            try {
+                myWriter.write("null");
+            }catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
 
+        }
+        else {
+            try {
+                int value = this.distances[end];
+                myWriter.write(String.valueOf(value));
+            }catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+        }
 
         //afisarea tuturor distantelor de la sursa la restul nodurilor
         /*
@@ -207,8 +252,10 @@ public class Harta {
         List<List<Node> > graph = new ArrayList<List<Node> >();
         // Initialize list for every node
         try{
-            File input = new File("/home/oh/IdeaProjects/Harta/src/map8.in");
+            File input = new File("/home/oh/IdeaProjects/Harta/src/map2.in");
             Scanner sc = new Scanner(input);
+            map.out("/home/oh/IdeaProjects/Harta/src/map2.out");
+
             while (sc.hasNextLine()){
                 String line = sc.nextLine();
                 String words[] = line.split(" ");
@@ -260,14 +307,26 @@ public class Harta {
                         map.dijkstra(graph,start,new Motorcycle());
                     //doar am gasit distanta finala dar nu am retinut si path
                     map.parents[start] = -1;
-                    //map.getPath(end);
-                    //map.getLength(end);
-                    map.showGraph();
+                    map.getPath(end, map.writer);
+                    map.getLength(end, map.writer);
+                    try {
+                        map.writer.write('\n');
+                    }catch (IOException e) {
+                        System.out.println("An error occurred.");
+                        e.printStackTrace();
+                    }
                 }
-                else
-                    System.out.println("nimic");
-
+                //else
+                //System.out.println("nimic");
             }
+            sc.close();
+            try {
+                map.writer.close();
+            }catch (IOException e) {
+                System.out.println("An error occurred.");
+                e.printStackTrace();
+            }
+
         } catch (FileNotFoundException e){
             System.out.println("an error occured,file not found");
             e.printStackTrace();
